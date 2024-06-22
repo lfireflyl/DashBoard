@@ -59,30 +59,6 @@ layout = dbc.Container([
     ], className='mt-3 g-0')
 ], fluid=True)  # установлено полную ширину контейнера
 
-# # Добавление CSS стилей для выравнивания
-# clients_callback(
-#     """
-#     function(styleData) {
-#         var leftAlign = document.getElementById('left-align');
-#         var centerAlign = document.getElementById('center-align');
-#         var rightAlign = document.getElementById('right-align');
-
-#         if (leftAlign) {
-#             leftAlign.style.textAlign = 'left';
-#         }
-#         if (centerAlign) {
-#             centerAlign.style.textAlign = 'center';
-#         }
-#         if (rightAlign) {
-#             rightAlign.style.textAlign = 'right';
-#         }
-#         return '';
-#     }
-#     """,
-#     Output('date-picker-range', 'style'),
-#     [Input('date-picker-range', 'id')]
-# )
-
 # Коллбэк для обновления графиков на основе селекторов
 @callback(
     [Output('age-bar-chart', 'figure'),
@@ -103,21 +79,21 @@ def update_graphs(start_date, end_date, selected_gender, selected_age):
     if selected_gender:
         filtered_df = filtered_df[filtered_df['Gender'] == selected_gender]
     
-    if selected_age:
-        filtered_df = filtered_df[filtered_df['Age'] == selected_age]
-
     # Столбчатая диаграмма по возрасту клиентов
-    age_gender_df = filtered_df.groupby(['Age', 'Gender']).size().reset_index(name='Count')
-    age_bar_chart = px.bar(age_gender_df, x='Age', y='Count', color='Gender', barmode='group', title='Распределение клиентов по возрасту')
+    age_gender_df = df.groupby(['Age', 'Gender']).size().reset_index(name='Count')  # Используем неотфильтрованные данные для диаграммы по возрасту
+    age_bar_chart = px.bar(age_gender_df, x='Age', y='Count', color='Gender', barmode='stack', title='Распределение клиентов по возрасту')
 
     # Круговая диаграмма с распределением клиентов по полу
-    gender_count = filtered_df['Gender'].value_counts().reset_index()
+    gender_count = df['Gender'].value_counts().reset_index()  # Используем неотфильтрованные данные для круговой диаграммы
     gender_count.columns = ['Gender', 'Count']
     gender_pie_chart = px.pie(gender_count, names='Gender', values='Count', title='Распределение клиентов по полу', hole=0.3)
 
+    # Фильтрация данных по возрасту для диаграммы по оттоку клиентов
+    if selected_age:
+        filtered_df = filtered_df[filtered_df['Age'] == selected_age]
+
     # Столбчатая диаграмма по оттоку клиентов
-    churn_gender_df = filtered_df.groupby(['Churn', 'Gender']).size().reset_index(name='Count')
-    churn_gender_df['Churn'] = churn_gender_df['Churn'].map({0: 'No Churn', 1: 'Churn'})
-    churn_bar_chart = px.bar(churn_gender_df, x='Churn', y='Count', color='Gender', barmode='group', title='Отток клиентов по полу')
-    
+    churn_age_df = filtered_df[filtered_df['Churn'] == 1].groupby(['Age', 'Gender']).size().reset_index(name='Count')
+    churn_bar_chart = px.bar(churn_age_df, x='Age', y='Count', color='Gender', barmode='stack', title='Отток клиентов по возрасту')
+
     return age_bar_chart, gender_pie_chart, churn_bar_chart
