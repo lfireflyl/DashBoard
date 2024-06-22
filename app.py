@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, dcc, html
 from pages import home, clients, purchase
 
-external_stylesheets = [dbc.themes.LITERA]  
+external_stylesheets = [dbc.themes.ZEPHYR]  
 app = Dash(__name__, external_stylesheets=external_stylesheets,  use_pages=True)
 app.config.suppress_callback_exceptions = True
 
@@ -14,7 +14,7 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "16rem",
     "padding": "2rem 1rem",
-    "background-color": "#454C53", 
+    "background-color": "#BDBDBD", 
 }
 
 CONTENT_STYLE = {
