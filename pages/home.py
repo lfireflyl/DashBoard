@@ -6,7 +6,7 @@ from data import df
 
 
 layout = dbc.Container([
-    html.H1("Фильтрация данных", className='text-center my-4'),
+    html.H2("Селекторы данных", className='text-center my-4'),
 
     # Селекторы в одну строку
     dbc.Row([
@@ -46,6 +46,7 @@ layout = dbc.Container([
         ], width=4)
     ], className='mb-3 align-items-end g-0'),
 
+    html.H1("Общая информация", className='text-center'),
     # Индикаторы
     dbc.Row([
         dbc.Col(dcc.Graph(id='total-customers'), width=4, className='p-0'),
@@ -59,8 +60,8 @@ layout = dbc.Container([
     ], className='mt-3 g-0'),
 
     # Круговая диаграмма с процентом возвратов
-    dbc.Row([
-        dbc.Col(dcc.Graph(id='returns-pie-chart'), width=6, className='p-0')
+     dbc.Row([
+        dbc.Col(dcc.Graph(id='returns-pie-chart'), width=6, className='p-0', style={'margin': '0 auto', 'textAlign': 'center'})
     ], className='mt-3 g-0')
 ], fluid=True)
 
