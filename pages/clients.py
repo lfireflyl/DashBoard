@@ -54,18 +54,19 @@ layout = dbc.Container([
 
     # Круговая диаграмма с распределением клиентов по полу и столбчатая диаграмма по оттоку клиента
     dbc.Row([
-        dbc.Col(dcc.Graph(id='gender-pie-chart'), width=6, className='p-0'),
-        dbc.Col(dcc.Graph(id='churn-bar-chart'), width=6, className='p-0')
-    ], className='mt-3 g-0'),
-
-    # Таблица топ-5 клиентов
-    dbc.Row([
+        dbc.Col(dcc.Graph(id='gender-pie-chart'), width=3, className='p-0'),
+        dbc.Col(dcc.Graph(id='churn-bar-chart'), width=6, className='p-0'),
         dbc.Col([
             html.H3("Топ-5 клиентов по выручке", className='text-center my-4'),
             dbc.Table(id='top-customers-table', bordered=True, striped=True, hover=True, responsive=True)
-        ], width=12)
+        ], width=3)
+    ], className='mt-3 g-0'), 
+
+    # Таблица топ-5 клиентов
+    dbc.Row([
+        
     ], className='mt-3 g-0')
-], fluid=True)  # установлено полную ширину контейнера
+], fluid=True) 
 
 # Коллбэк для обновления графиков на основе селекторов
 @callback(

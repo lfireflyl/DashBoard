@@ -1,7 +1,6 @@
 from dash import html, dcc, callback, Output, Input
 import dash_bootstrap_components as dbc
 import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 from data import df
 
@@ -20,6 +19,7 @@ layout = dbc.Container([
                 className='d-block'
             ),
         ], width=4, className='me-3'), 
+
         dbc.Col([
             html.Label("Категория продукта:", className='d-block'),
             dcc.Dropdown(
@@ -32,14 +32,18 @@ layout = dbc.Container([
         ], width=4)
     ], className='mb-3 g-0'),  
 
-    # Графики
+    # Графики и таблица
     dbc.Row([
         dbc.Col(dcc.Graph(id='sales-bar-chart'), width=4, className='p-1'),
         dbc.Col(dcc.Graph(id='profit-bar-chart'), width=4, className='p-1'),
         dbc.Col(dcc.Graph(id='payment-method-pie-chart'), width=4, className='p-1'),
-        dbc.Col(dcc.Graph(id='scatter-plot'), width=4, className='p-1')
+        dbc.Col(dcc.Graph(id='scatter-plot'), width=4, className='p-1'),
+        dbc.Col([
+            html.H3("Топ-5 клиентов по возвратам", className='text-center my-4'),
+            dbc.Table(id='top-5-returns-table', striped=True, bordered=True, hover=True)
+        ], width=3, className='p-1')  
     ], className='mt-3 g-0')
-], fluid=True)  
+], fluid=True) 
 
 # Коллбэк для обновления круговой диаграммы на основе селекторов
 @callback(
@@ -69,16 +73,21 @@ def update_pie_chart(start_date, end_date, selected_categories):
 @callback(
     [Output('sales-bar-chart', 'figure'),
      Output('profit-bar-chart', 'figure'),
-     Output('scatter-plot', 'figure')],
+     Output('scatter-plot', 'figure'),
+     Output('top-5-returns-table', 'children')],
     [Input('date-picker-range-product', 'start_date'),
-     Input('date-picker-range-product', 'end_date')]
+     Input('date-picker-range-product', 'end_date'),
+     Input('product-category-dropdown', 'value')]
 )
-def update_graphs(start_date, end_date):
+def update_graphs_and_table(start_date, end_date, selected_categories):
     # Фильтрация данных
     filtered_df = df[
         (df['Purchase Date'] >= start_date) &
         (df['Purchase Date'] <= end_date)
     ]
+
+    if selected_categories:
+        filtered_df = filtered_df[filtered_df['Product Category'].isin(selected_categories)]
 
     # Столбчатая диаграмма продаж по категориям продуктов
     sales_by_category = filtered_df.groupby('Product Category').size().reset_index(name='Count')
@@ -86,13 +95,21 @@ def update_graphs(start_date, end_date):
 
     # Столбчатая диаграмма прибыли по категориям продуктов
     profit_by_category = filtered_df.groupby('Product Category')['Total Purchase Amount'].sum().reset_index()
-    profit_bar_chart = px.bar(profit_by_category, x='Product Category', y='Total Purchase Amount',color='Product Category', title='Прибыль по категориям продуктов')
+    profit_bar_chart = px.bar(profit_by_category, x='Product Category', y='Total Purchase Amount', color='Product Category', title='Прибыль по категориям продуктов')
 
     # График рассеивания средней стоимости покупок и количества покупок по категориям продуктов
     avg_purchase_amount = filtered_df.groupby('Product Category')['Total Purchase Amount'].mean().reset_index()
     purchase_count = filtered_df.groupby('Product Category').size().reset_index(name='Purchase Count')
     scatter_data = pd.merge(avg_purchase_amount, purchase_count, on='Product Category')
-    scatter_plot = px.scatter(scatter_data, x='Purchase Count', y='Total Purchase Amount', color='Product Category', size='Purchase Count',
-                              title='Соотношение средней стоимости и количества покупок')
-    
-    return sales_bar_chart, profit_bar_chart, scatter_plot
+    scatter_plot = px.scatter(scatter_data, x='Purchase Count', y='Total Purchase Amount', color='Product Category', size='Purchase Count', title='Соотношение средней стоимости и количества покупок')
+
+    # Таблица с топ-5 клиентов по возвратам
+    returns_by_customer = filtered_df.groupby('Customer ID')['Returns'].sum().reset_index()
+    top_5_returns = returns_by_customer.sort_values(by='Returns', ascending=False).head(5)
+    top_5_returns = pd.merge(top_5_returns, df[['Customer ID', 'Customer Name']].drop_duplicates(), on='Customer ID')
+
+    table_header = [html.Thead(html.Tr([html.Th("Customer Name"), html.Th("Total Returns")]))]
+    rows = [html.Tr([html.Td(row['Customer Name']), html.Td(row['Returns'])]) for index, row in top_5_returns.iterrows()]
+    table_body = [html.Tbody(rows)]
+
+    return sales_bar_chart, profit_bar_chart, scatter_plot, table_header + table_body
