@@ -6,7 +6,7 @@ from data import df
 
 
 layout = dbc.Container([
-    html.H2("Селекторы данных", className='text-center my-4'),
+    html.H1("Главная", className='text-center my-4'),
 
     # Селекторы в одну строку
     dbc.Row([
@@ -120,7 +120,7 @@ def update_indicators_and_graph(start_date, end_date, selected_gender, selected_
     # Круговая диаграмма с процентом возвратов
     returns_count = filtered_df['Returns'].value_counts().reset_index()
     returns_count.columns = ['Returns', 'Count']
-    returns_count['Returns'] = returns_count['Returns'].map({0: 'No Return', 1: 'Return'})
+    returns_count['Returns'] = returns_count['Returns'].map({0: 'Not Returned', 1: 'Returned'})
     returns_pie_chart = px.pie(returns_count, names='Returns', values='Count', title='Процент возвратов', hole=0.3)
     
     return total_customers_fig, total_revenue_fig, churn_rate_fig, revenue_by_date_fig, returns_pie_chart
