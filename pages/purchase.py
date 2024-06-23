@@ -19,8 +19,7 @@ layout = dbc.Container([
                 display_format='YYYY-MM-DD',
                 className='d-block'
             ),
-        ], width=4, className='me-3'),  # Добавлен отступ справа
-
+        ], width=4, className='me-3'), 
         dbc.Col([
             html.Label("Категория продукта:", className='d-block'),
             dcc.Dropdown(
@@ -31,7 +30,7 @@ layout = dbc.Container([
                 className='d-block'
             ),
         ], width=4)
-    ], className='mb-3 g-0'),  # выравнивание колонок
+    ], className='mb-3 g-0'),  
 
     # Графики
     dbc.Row([
@@ -40,7 +39,7 @@ layout = dbc.Container([
         dbc.Col(dcc.Graph(id='payment-method-pie-chart'), width=4, className='p-1'),
         dbc.Col(dcc.Graph(id='scatter-plot'), width=4, className='p-1')
     ], className='mt-3 g-0')
-], fluid=True)  # установлено полную ширину контейнера
+], fluid=True)  
 
 # Коллбэк для обновления круговой диаграммы на основе селекторов
 @callback(

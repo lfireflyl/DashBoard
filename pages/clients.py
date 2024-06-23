@@ -2,8 +2,8 @@ from dash import html, dcc, callback, Output, Input
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
 from data import df
-
 
 layout = dbc.Container([
     html.H1("Анализ клиентов", className='text-center my-4'),
@@ -19,7 +19,7 @@ layout = dbc.Container([
                 display_format='YYYY-MM-DD',
                 className='d-block'
             ),
-        ], id='left-align', width=4, className='me-3'),  # Добавлен отступ справа
+        ], id='left-align', width=4, className='me-3'),  
 
         dbc.Col([
             html.Label("Выберите пол:", className='d-block'),
@@ -32,9 +32,9 @@ layout = dbc.Container([
                 multi=False,
                 placeholder="Select...",
                 className='d-block',
-                style={'width': '150px'}  # Установлена фиксированная ширина
+                style={'width': '150px'}  
             ),
-        ], id='center-align', width='auto', className='me-3'),  # Добавлен отступ справа и авто ширина
+        ], id='center-align', width='auto', className='me-3'),  
 
         dbc.Col([
             html.Label("Введите возраст:", className='d-block'),
@@ -45,7 +45,7 @@ layout = dbc.Container([
                 className='d-block'
             ),
         ], id='right-align', width=4)
-    ], className='mb-3 align-items-end g-0'),  # выравнивание колонок по нижнему краю
+    ], className='mb-3 align-items-end g-0'),  
 
     # Столбчатая диаграмма по возрасту клиентов
     dbc.Row([
@@ -56,6 +56,14 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col(dcc.Graph(id='gender-pie-chart'), width=6, className='p-0'),
         dbc.Col(dcc.Graph(id='churn-bar-chart'), width=6, className='p-0')
+    ], className='mt-3 g-0'),
+
+    # Таблица топ-5 клиентов
+    dbc.Row([
+        dbc.Col([
+            html.H3("Топ-5 клиентов по выручке", className='text-center my-4'),
+            dbc.Table(id='top-customers-table', bordered=True, striped=True, hover=True, responsive=True)
+        ], width=12)
     ], className='mt-3 g-0')
 ], fluid=True)  # установлено полную ширину контейнера
 
@@ -63,7 +71,8 @@ layout = dbc.Container([
 @callback(
     [Output('age-bar-chart', 'figure'),
      Output('gender-pie-chart', 'figure'),
-     Output('churn-bar-chart', 'figure')],
+     Output('churn-bar-chart', 'figure'),
+     Output('top-customers-table', 'children')],
     [Input('date-picker-range', 'start_date'),
      Input('date-picker-range', 'end_date'),
      Input('gender-dropdown', 'value'),
@@ -78,7 +87,7 @@ def update_graphs(start_date, end_date, selected_gender, selected_age):
     
     if selected_gender:
         filtered_df = filtered_df[filtered_df['Gender'] == selected_gender]
-    
+
     # Столбчатая диаграмма по возрасту клиентов
     age_gender_df = df.groupby(['Age', 'Gender']).size().reset_index(name='Count')  # Используем неотфильтрованные данные для диаграммы по возрасту
     age_bar_chart = px.bar(age_gender_df, x='Age', y='Count', color='Gender', barmode='stack', title='Распределение клиентов по возрасту')
@@ -96,4 +105,20 @@ def update_graphs(start_date, end_date, selected_gender, selected_age):
     churn_age_df = filtered_df[filtered_df['Churn'] == 1].groupby(['Age', 'Gender']).size().reset_index(name='Count')
     churn_bar_chart = px.bar(churn_age_df, x='Age', y='Count', color='Gender', barmode='stack', title='Отток клиентов по возрасту')
 
-    return age_bar_chart, gender_pie_chart, churn_bar_chart
+    # Таблица топ-5 клиентов
+    top_customers_df = filtered_df.groupby(['Customer ID', 'Customer Name'])['Total Purchase Amount'].sum().reset_index()
+    top_customers_df = top_customers_df.sort_values(by='Total Purchase Amount', ascending=False).head(5)
+
+    table_header = [
+        html.Thead(html.Tr([html.Th("Customer Name"), html.Th("Total Purchase Amount")]))
+    ]
+    table_body = [
+        html.Tbody([
+            html.Tr([html.Td(row['Customer Name']), html.Td(f"{row['Total Purchase Amount']:.2f}")])
+            for _, row in top_customers_df.iterrows()
+        ])
+    ]
+    
+    top_customers_table = table_header + table_body
+
+    return age_bar_chart, gender_pie_chart, churn_bar_chart, top_customers_table
