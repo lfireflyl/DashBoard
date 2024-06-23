@@ -63,12 +63,12 @@ def update_graphs(start_date, end_date, selected_categories):
         filtered_df = filtered_df[filtered_df['Product Category'].isin(selected_categories)]
 
     # Столбчатая диаграмма продаж по категориям продуктов
-    sales_by_category = filtered_df.groupby('Product Category')['Total Purchase Amount'].sum().reset_index()
-    sales_bar_chart = px.bar(sales_by_category, x='Product Category', y='Total Purchase Amount', title='Продажи по категориям продуктов')
+    sales_by_category = filtered_df.groupby('Product Category').size().reset_index(name='Count')
+    sales_bar_chart = px.bar(sales_by_category, x='Product Category', y='Count', color='Product Category', title='Количество продаж по категориям продуктов')
 
     # Столбчатая диаграмма прибыли по категориям продуктов
     profit_by_category = filtered_df.groupby('Product Category')['Total Purchase Amount'].sum().reset_index()
-    profit_bar_chart = px.bar(profit_by_category, x='Product Category', y='Total Purchase Amount', title='Прибыль по категориям продуктов')
+    profit_bar_chart = px.bar(profit_by_category, x='Product Category', y='Total Purchase Amount',color='Product Category', title='Прибыль по категориям продуктов')
 
     # Круговая диаграмма анализа метода оплаты
     payment_method_count = filtered_df['Payment Method'].value_counts(normalize=True).reset_index()
