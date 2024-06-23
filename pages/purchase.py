@@ -42,17 +42,14 @@ layout = dbc.Container([
     ], className='mt-3 g-0')
 ], fluid=True)  # установлено полную ширину контейнера
 
-# Коллбэк для обновления графиков на основе селекторов
+# Коллбэк для обновления круговой диаграммы на основе селекторов
 @callback(
-    [Output('sales-bar-chart', 'figure'),
-     Output('profit-bar-chart', 'figure'),
-     Output('payment-method-pie-chart', 'figure'),
-     Output('scatter-plot', 'figure')],
+    Output('payment-method-pie-chart', 'figure'),
     [Input('date-picker-range-product', 'start_date'),
      Input('date-picker-range-product', 'end_date'),
      Input('product-category-dropdown', 'value')]
 )
-def update_graphs(start_date, end_date, selected_categories):
+def update_pie_chart(start_date, end_date, selected_categories):
     # Фильтрация данных
     filtered_df = df[
         (df['Purchase Date'] >= start_date) &
@@ -62,6 +59,28 @@ def update_graphs(start_date, end_date, selected_categories):
     if selected_categories:
         filtered_df = filtered_df[filtered_df['Product Category'].isin(selected_categories)]
 
+    # Круговая диаграмма анализа метода оплаты
+    payment_method_count = filtered_df['Payment Method'].value_counts(normalize=True).reset_index()
+    payment_method_count.columns = ['Payment Method', 'Percentage']
+    payment_method_pie_chart = px.pie(payment_method_count, names='Payment Method', values='Percentage', title='Анализ метода оплаты (%)', hole=0.3)
+
+    return payment_method_pie_chart
+
+# Коллбэк для обновления столбчатых диаграмм и scatter plot на основе селекторов
+@callback(
+    [Output('sales-bar-chart', 'figure'),
+     Output('profit-bar-chart', 'figure'),
+     Output('scatter-plot', 'figure')],
+    [Input('date-picker-range-product', 'start_date'),
+     Input('date-picker-range-product', 'end_date')]
+)
+def update_graphs(start_date, end_date):
+    # Фильтрация данных
+    filtered_df = df[
+        (df['Purchase Date'] >= start_date) &
+        (df['Purchase Date'] <= end_date)
+    ]
+
     # Столбчатая диаграмма продаж по категориям продуктов
     sales_by_category = filtered_df.groupby('Product Category').size().reset_index(name='Count')
     sales_bar_chart = px.bar(sales_by_category, x='Product Category', y='Count', color='Product Category', title='Количество продаж по категориям продуктов')
@@ -70,11 +89,6 @@ def update_graphs(start_date, end_date, selected_categories):
     profit_by_category = filtered_df.groupby('Product Category')['Total Purchase Amount'].sum().reset_index()
     profit_bar_chart = px.bar(profit_by_category, x='Product Category', y='Total Purchase Amount',color='Product Category', title='Прибыль по категориям продуктов')
 
-    # Круговая диаграмма анализа метода оплаты
-    payment_method_count = filtered_df['Payment Method'].value_counts(normalize=True).reset_index()
-    payment_method_count.columns = ['Payment Method', 'Percentage']
-    payment_method_pie_chart = px.pie(payment_method_count, names='Payment Method', values='Percentage', title='Анализ метода оплаты (%)', hole=0.3)
-
     # График рассеивания средней стоимости покупок и количества покупок по категориям продуктов
     avg_purchase_amount = filtered_df.groupby('Product Category')['Total Purchase Amount'].mean().reset_index()
     purchase_count = filtered_df.groupby('Product Category').size().reset_index(name='Purchase Count')
@@ -82,4 +96,4 @@ def update_graphs(start_date, end_date, selected_categories):
     scatter_plot = px.scatter(scatter_data, x='Purchase Count', y='Total Purchase Amount', color='Product Category', size='Purchase Count',
                               title='Соотношение средней стоимости и количества покупок')
     
-    return sales_bar_chart, profit_bar_chart, payment_method_pie_chart, scatter_plot
+    return sales_bar_chart, profit_bar_chart, scatter_plot

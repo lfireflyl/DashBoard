@@ -2,6 +2,7 @@ from dash import html, dcc, callback, Output, Input
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
 from data import df
 
 
@@ -114,7 +115,7 @@ def update_indicators_and_graph(start_date, end_date, selected_gender, selected_
     ))
     
     # График выручки по дням
-    revenue_by_date_df = filtered_df.groupby('Purchase Date')['Total Purchase Amount'].sum().reset_index()
+    revenue_by_date_df = filtered_df.groupby(pd.to_datetime(filtered_df['Purchase Date']).dt.date)['Total Purchase Amount'].sum().reset_index()
     revenue_by_date_fig = px.line(revenue_by_date_df, x='Purchase Date', y='Total Purchase Amount', title='Выручка по дням')
     
     # Круговая диаграмма с процентом возвратов
