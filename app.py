@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, dcc, html
-from pages import home, clients, purchase
+from pages import home, clients, purchase, about
 
 external_stylesheets = [dbc.themes.ZEPHYR]  
 app = Dash(__name__, external_stylesheets=external_stylesheets,  use_pages=True)
@@ -33,8 +33,9 @@ sidebar = html.Div(
         dbc.Nav(
             [
                 dbc.NavLink("Главная", href="/", active="exact"),
-                dbc.NavLink("Анализ клиентов", href="/page-1", active="exact"),
-                dbc.NavLink("Анализ продуктов и покупок", href="/page-2", active="exact"),
+                dbc.NavLink("Анализ клиентов", href="/clients", active="exact"),
+                dbc.NavLink("Анализ продуктов и покупок", href="/purchase", active="exact"),
+                dbc.NavLink("О проекте", href="/about", active="exact"),
             ],
             vertical=True,
             pills=True,
@@ -54,10 +55,12 @@ app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 def render_page_content(pathname):
     if pathname == "/":
         return home.layout
-    elif pathname == "/page-1":
+    elif pathname == "/clients":
         return clients.layout
-    elif pathname == "/page-2":
+    elif pathname == "/purchase":
         return purchase.layout
+    elif pathname == "/about":
+        return about.layout
     
     return html.Div(
         [

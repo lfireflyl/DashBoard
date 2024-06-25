@@ -5,6 +5,11 @@ import plotly.graph_objects as go
 import pandas as pd
 from data import df
 
+gender_map = {'Male': 'Мужчина', 'Female': 'Женщина'}
+df['Gender'] = df['Gender'].map(gender_map)
+
+category_map = {'Books': 'Книги', 'Clothing': 'Одежда', 'Home': 'Дом', 'Electronics': 'Электроника'}
+df['Product Category'] = df['Product Category'].map(category_map)
 
 layout = dbc.Container([
     html.H1("Главная", className='text-center my-4'),
@@ -27,8 +32,8 @@ layout = dbc.Container([
             dcc.Dropdown(
                 id='gender-dropdown',
                 options=[
-                    {'label': 'Male', 'value': 'Male'},
-                    {'label': 'Female', 'value': 'Female'}
+                    {'label': 'Мужчина', 'value': 'Мужчина'},
+                    {'label': 'Женщина', 'value': 'Женщина'}
                 ],
                 multi=False,
                 placeholder="Select...",
@@ -114,14 +119,21 @@ def update_indicators_and_graph(start_date, end_date, selected_gender, selected_
         title = {"text": "Отток клиентов (%)"}
     ))
     
-    # График выручки по дням
     revenue_by_date_df = filtered_df.groupby(pd.to_datetime(filtered_df['Purchase Date']).dt.date)['Total Purchase Amount'].sum().reset_index()
-    revenue_by_date_fig = px.line(revenue_by_date_df, x='Purchase Date', y='Total Purchase Amount', title='Выручка по дням')
-    
+    revenue_by_date_fig = go.Figure(
+        data=go.Scatter(x=revenue_by_date_df['Purchase Date'], y=revenue_by_date_df['Total Purchase Amount'], mode='lines+markers'),
+        layout=go.Layout(
+            title='Выручка по дням',
+            xaxis_title='Дата покупки',
+            yaxis_title='Общая сумма покупки',
+            autosize=True
+        )
+    )
+
     # Круговая диаграмма с процентом возвратов
     returns_count = filtered_df['Returns'].value_counts().reset_index()
     returns_count.columns = ['Returns', 'Count']
-    returns_count['Returns'] = returns_count['Returns'].map({0: 'Not Returned', 1: 'Returned'})
+    returns_count['Returns'] = returns_count['Returns'].map({0: 'Не возвращен', 1: 'Возвращен'})
     returns_pie_chart = px.pie(returns_count, names='Returns', values='Count', title='Процент возвратов', hole=0.3)
     
     return total_customers_fig, total_revenue_fig, churn_rate_fig, revenue_by_date_fig, returns_pie_chart
